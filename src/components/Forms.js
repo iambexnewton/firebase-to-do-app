@@ -1,34 +1,55 @@
-import React, { useState } from 'react';
-import firebase from '../Firebase/firebase.js';
+import React, { useState, useEffect } from 'react';
+
+import db from '../Firebase/firebase-set-up';
+
+import Todo from './Todos.js';
 
 export default function Forms() {
-  const [taskName, setTaskName] = useState('');
+  const [todos, setTodos] = useState(['']);
+  const [input, setInput] = useState('');
 
-  const createTodo = (e) => {
+  useEffect(() => {
+    db.collection('todos').onSnapshot((snapshot) => {
+      console.log(snapshot.docs.map((doc) => doc.data()));
+      setTodos(snapshot.docs.map((doc) => doc.data()));
+    });
+  }, []);
+
+  const addTodo = (e) => {
     e.preventDefault();
-    const todoRef = firebase.database().ref('Todo');
-    const todo = {
-      taskName,
-      completed: false,
-    };
-    todoRef.push(todo);
+    console.log('kgvdskahv');
+    setTodos([...todos, input]);
+    setInput('');
   };
 
-  const handleChange = (e) => {
-    setTaskName(e.target.value);
-  };
+  // const handleChange = (e) => {
+  //   setTodo(e.target.value);
+  // };
 
   return (
-    <form onSubmit={createTodo}>
+    <form>
       <input
         type="text"
         placeholder="enter a Todo..."
-        className="task-input"
-        value={taskName}
+        className="todo-input"
+        value={input}
         required
-        onChange={handleChange}
+        onChange={(event) => setInput(event.target.value)}
       />
-      <button></button>
+      <button
+        onClick={addTodo}
+        className="button-add"
+        type="submit"
+        disabled={!input}
+      >
+        Add
+      </button>
+
+      <ul>
+        {todos.map((todo) => (
+          <Todo text={todo} />
+        ))}
+      </ul>
     </form>
   );
 }
